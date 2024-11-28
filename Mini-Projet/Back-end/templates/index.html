@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filtrage des Données</title>
+    <style>
+        /* Background principal */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(120deg, #e0f7fa, #f9fbe7);
+            background-attachment: fixed;
+            color: #333;
+        }
+
+        /* Ajout de formes décoratives */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 300px;
+            height: 300px;
+            background: rgba(0, 150, 136, 0.1);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 204, 128, 0.1);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00796b;
+        }
+
+        .filter-container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .filter-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #f8f8f8;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #00796b;
+            color: #ffffff;
+            font-size: 16px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #004d40;
+        }
+
+        .results {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .results h3 {
+            color: #00796b;
+            margin-bottom: 10px;
+        }
+        .results p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .filter-container, .results {
+                padding: 15px;
+            }
+            select, button {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Filtrage des Données</h1>
+
+    <div class="filter-container">
+        <form id="filterForm">
+            {% for column, values in distinct_values.items() %}
+                <div>
+                    <label for="{{ column }}">{{ column.replace('_', ' ').capitalize() }}:</label>
+                    <select name="{{ column }}" id="{{ column }}">
+                        <option value="">--Sélectionner--</option>
+                        {% for value in values %}
+                            <option value="{{ value }}">{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endfor %}
+            <button type="submit">Afficher les résultats</button>
+        </form>
+    </div>
+
+    <div class="results" id="results">
+        <!-- Les résultats seront affichés ici -->
+    </div>
+
+    <script>
+        // Gérer l'envoi du formulaire via AJAX
+        document.getElementById('filterForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            let formData = new FormData(this);
+            let queryParams = new URLSearchParams();
+
+            formData.forEach((value, key) => {
+                if (value) {
+                    queryParams.append(key, value);
+                }
+            });
+
+            fetch(`/search?${queryParams.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = `
+                        <h3>Résultats de la recherche :</h3>
+                        <p>Nombre total d'élèves : ${data.total_students}</p>
+                        <p>Nombre de garçons : ${data.total_boys}</p>
+                        <p>Nombre de filles : ${data.total_girls}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+        });
+    </script>
+</body>
+</html>
